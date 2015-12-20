@@ -66,7 +66,7 @@ public class DbHelper extends SQLiteOpenHelper{
         SQLiteDatabase database = getWritableDatabase();
         String sql = "DELETE FROM DailyLog WHERE id = " + index;
 
-        database.rawQuery(sql, null);
+        database.execSQL(sql);
     }
 
     //Show stored DB in Android Monitor

@@ -190,11 +190,13 @@ public class TotalLog extends android.support.v4.app.Fragment implements View.On
 
                 logDist.add(distance);
                 logId.add(id);
+                logList.add(log);
                 cursor.moveToNext();
             }
             sort(logDist, logId);
             String sql = "SELECT * FROM DailyLog";
             cursor = database.rawQuery(sql, null);
+            cursor.moveToFirst();
             for(int i = 0; i < logId.size(); i++) {
                 cursor.moveToPosition(logId.get(i));
                 String log = cursor.getString(1);
@@ -215,13 +217,13 @@ public class TotalLog extends android.support.v4.app.Fragment implements View.On
         }
         for(int i = 0; i < T.size(); i++) {
             for(int j = 0; i < T.size() - 1; j++) {
-                if(T.get(j) >= T.get(j + 1)) {
+                if(T.get(j + 1) >= T.get(j + 2)) {
                     tempDouble = T.get(j);
                     tempInt = I.get(j);
-                    T.set(j, T.get(j + 1));
-                    I.set(j, I.get(j + 1));
-                    T.set(j + 1, tempDouble);
-                    I.set(j + 1, tempInt);
+                    T.set(j + 1, T.get(j + 2));
+                    I.set(j + 1, I.get(j + 2));
+                    T.set(j + 2, tempDouble);
+                    I.set(j + 2, tempInt);
                 }
             }
         }
@@ -238,5 +240,20 @@ public class TotalLog extends android.support.v4.app.Fragment implements View.On
         recent = (RadioButton) view.findViewById(R.id.tRecent);
         distance = (RadioButton) view.findViewById(R.id.tDistance);
         logView = (ListView) view.findViewById(R.id.logList);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if(type == "recent") {
+            String query = "SELECT * FROM DailyLog WHERE type = 'doing' ORDER BY id DESC";
+            insertLogRecent(query);
+        }
+        else {
+            String query = "SELECT * FROM DailyLog WHERE type = 'doing' ORDER BY id ASC";
+            insertLogDistance(query);
+        }
+        logAdapter.notifyDataSetChanged();
     }
 }

@@ -1,10 +1,11 @@
 package embedded.kookmin.ac.kr.lifelogger.Activity;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -59,6 +60,9 @@ public class ShowActivity extends AppCompatActivity implements View.OnClickListe
         flag.position(position);
         flag.title("You were Here!");
         map.addMarker(flag).showInfoWindow();
+
+        sDelete.setOnClickListener(this);
+        sBack.setOnClickListener(this);
     }
 
     //Override Button onClick Listener
@@ -66,8 +70,24 @@ public class ShowActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.sDelete :
-                db.deleteLog(getIntent().getIntExtra("index", 0));
-                finish();
+                AlertDialog.Builder alert = new AlertDialog.Builder(ShowActivity.this);
+                alert.setTitle("Delete");
+                alert.setMessage("Life Log를 삭제 하시겠습니까?");
+                alert.setCancelable(false);
+                alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        db.deleteLog(getIntent().getIntExtra("index", 0));
+                        finish();
+                    }
+                });
+                alert.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+                alert.show();
                 break;
             case R.id.sBack :
                 finish();
@@ -80,7 +100,6 @@ public class ShowActivity extends AppCompatActivity implements View.OnClickListe
         String query = "SELECT * FROM DailyLog";
         cursor = database.rawQuery(query, null);
         cursor.moveToPosition(getIntent().getIntExtra("index", 0) - 1);
-        Log.e("cursor position :", "" + cursor.getPosition() + 1);
 
         sLog.setText(cursor.getString(1));
         sDate.setText(cursor.getString(2));
