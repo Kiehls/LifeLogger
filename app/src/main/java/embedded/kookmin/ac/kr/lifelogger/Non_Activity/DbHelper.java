@@ -23,14 +23,15 @@ public class DbHelper extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + "( " +
-                "ID INTEGER PRIMARY KEY AUTOINCREMENT , " +
+        db.execSQL("CREATE TABLE IF NOT EXISTS " +
+                TABLE_NAME +
+                "(ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "log TEXT, " +
-                "date DATETIME NOT NULL DEFAULT getdate() , " +
+                "date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                 "type TEXT, " +
                 "address TEXT, " +
                 "lat REAL, " +
-                "lng REAL);");
+                "lng REAL)");
 
         Log.d("Table Created: ", "Main Table is created");
     }
@@ -89,7 +90,6 @@ public class DbHelper extends SQLiteOpenHelper{
                 }
             }
             else {
-//                Toast.makeText(MainActivity.this, "No Logger", Toast.LENGTH_SHORT).show();
                 Log.d("Database :", "No Database In DB");
             }
             cursor.close();

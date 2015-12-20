@@ -190,19 +190,43 @@ public class TotalLog extends android.support.v4.app.Fragment implements View.On
 
                 logDist.add(distance);
                 logId.add(id);
-//                logList.add(log);
                 cursor.moveToNext();
             }
+            sort(logDist, logId);
+            String sql = "SELECT * FROM DailyLog";
+            cursor = database.rawQuery(sql, null);
+            for(int i = 0; i < logId.size(); i++) {
+                cursor.moveToPosition(logId.get(i));
+                String log = cursor.getString(1);
+
+                logList.add(log);
+            }
+
         } catch (Exception e) {
             Log.d("Log Error : ", "cursor Error " + e.toString());
         }
     }
 
-    public void sort(ArrayList<Double> T) {
+    public void sort(ArrayList<Double> T, ArrayList<Integer> I) {
+        double tempDouble;
+        int tempInt;
         for(int i = 0; i < T.size(); i++) {
-            double min = T.get(i);
-            if(T.get(i) <= min)
-                min = T.get(i);
+            Log.e("sort :", "" + T.get(i) + ", " + I.get(i));
+        }
+        for(int i = 0; i < T.size(); i++) {
+            for(int j = 0; i < T.size() - 1; j++) {
+                if(T.get(j) >= T.get(j + 1)) {
+                    tempDouble = T.get(j);
+                    tempInt = I.get(j);
+                    T.set(j, T.get(j + 1));
+                    I.set(j, I.get(j + 1));
+                    T.set(j + 1, tempDouble);
+                    I.set(j + 1, tempInt);
+                }
+            }
+        }
+        for(int i = 0; i < T.size(); i++) {
+            Log.e("sorted :", "" + T.get(i) + ", " + I.get(i));
         }
     }
 
