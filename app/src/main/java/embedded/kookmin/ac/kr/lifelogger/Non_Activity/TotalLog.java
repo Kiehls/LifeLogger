@@ -25,7 +25,8 @@ import embedded.kookmin.ac.kr.lifelogger.R;
 /**
  * Created by 승수 on 2015-12-19.
  */
-public class TotalLog extends android.support.v4.app.Fragment implements View.OnClickListener, RadioGroup.OnCheckedChangeListener, AdapterView.OnItemClickListener{
+public class TotalLog extends android.support.v4.app.Fragment implements View.OnClickListener,
+        RadioGroup.OnCheckedChangeListener, AdapterView.OnItemClickListener{
 
     DbHelper db;
     SQLiteDatabase database;
@@ -100,9 +101,11 @@ public class TotalLog extends android.support.v4.app.Fragment implements View.On
                 else {
                     if (type.equals("recent")) { //시간순 + 행동
                         String query = "SELECT * FROM DailyLog WHERE type = 'doing' ORDER BY id DESC";
+                        Log.d("Log Type : ", "Doing Recent");
                         insertLogRecent(query);
                     } else { //거리순 + 행동
-                        String query = "SELECT * FROM DailyLog WHERE type = 'doing' ORDER BY id ASC";
+                        String query = "SELECT * FROM DailyLog WHERE type = 'doing' ORDER BY id ASC"; //fix
+                        Log.d("Log Type : ", "Doing Distance");
                         insertLogDistance(query);
                     }
                 }
@@ -117,9 +120,11 @@ public class TotalLog extends android.support.v4.app.Fragment implements View.On
                 else {
                     if (type.equals("recent")) { //시간순 + 사건
                         String query = "SELECT * FROM DailyLog WHERE type = 'event' ORDER BY id DESC";
+                        Log.d("Log Type :", "Events Recent");
                         insertLogRecent(query);
                     } else { //거리순 + 사건
-                        String query = "SELECT * FROM DailyLog WHERE type = 'event' ORDER BY id ASC";
+                        String query = "SELECT * FROM DailyLog WHERE type = 'event' ORDER BY id ASC"; //fix
+                        Log.d("Log Type : ", "Events Distance");
                         insertLogDistance(query);
                     }
                 }
@@ -160,12 +165,12 @@ public class TotalLog extends android.support.v4.app.Fragment implements View.On
         }
     }
 
-    public void insertLogDistance(String query) {
+    public void insertLogDistance(String query) { //fix
         try {
             cursor = database.rawQuery(query, null);
             cursor.moveToFirst();
 
-            gps = new GpsInfo(getActivity());
+            gps = new GpsInfo(getActivity()); //Get current location
             if(gps.isGetLocation()) {
                 Log.d("i have location", "success");
                 cLatitude = gps.getLatitude();
@@ -182,18 +187,17 @@ public class TotalLog extends android.support.v4.app.Fragment implements View.On
                 double pLongitude = cursor.getDouble(6);
                 Log.d("Log List : ", "id :" + id + ", " + "log :" + log + ", " + "lat :" + pLatitude + ", " + "lng :" + pLongitude);
 
-                Location locationPast = new Location("past location");
+                Location locationPast = new Location("past location"); //Get past location
                 locationPast.setLatitude(pLatitude);
                 locationPast.setLongitude(pLongitude);
 
-                double distance = locationCurrent.distanceTo(locationPast);
+                double distance = locationCurrent.distanceTo(locationPast); //거리는 계산 잘 되서 저장됨. proble is how to sort that distance with id?
 
                 logDist.add(distance);
                 logId.add(id);
-                logList.add(log);
                 cursor.moveToNext();
             }
-            sort(logDist, logId);
+            sort(logDist, logId);// problem solved!
             String sql = "SELECT * FROM DailyLog";
             cursor = database.rawQuery(sql, null);
             cursor.moveToFirst();
@@ -202,34 +206,38 @@ public class TotalLog extends android.support.v4.app.Fragment implements View.On
                 String log = cursor.getString(1);
 
                 logList.add(log);
+                Log.e("distance : ", "" + logDist.get(i));
             }
 
         } catch (Exception e) {
-            Log.d("Log Error : ", "cursor Error " + e.toString());
+            Log.d("Log Error : ", e.toString());
         }
     }
 
-    public void sort(ArrayList<Double> T, ArrayList<Integer> I) {
-        double tempDouble;
-        int tempInt;
-        for(int i = 0; i < T.size(); i++) {
-            Log.e("sort :", "" + T.get(i) + ", " + I.get(i));
+    public void sort(ArrayList<Double> dist, ArrayList<Integer> id) { //confirm that  sorting is working rightly
+        for(int i = 0; i < dist.size(); i++) {
+            Log.e("sort :", "" + dist.get(i) + ", " + id.get(i));
         }
-        for(int i = 0; i < T.size(); i++) {
-            for(int j = 0; i < T.size() - 1; j++) {
-                if(T.get(j + 1) >= T.get(j + 2)) {
-                    tempDouble = T.get(j);
-                    tempInt = I.get(j);
-                    T.set(j + 1, T.get(j + 2));
-                    I.set(j + 1, I.get(j + 2));
-                    T.set(j + 2, tempDouble);
-                    I.set(j + 2, tempInt);
-                }
+        for(int i = dist.size() - 1; i > 0; i--) {
+            for(int j = 0; j < i ; j++) {
+                if(dist.get(j) > dist.get(j + 1))
+                    swap(dist, id, j, j + 1);
             }
         }
-        for(int i = 0; i < T.size(); i++) {
-            Log.e("sorted :", "" + T.get(i) + ", " + I.get(i));
+        System.out.println("After Sorting : ");
+        for(int v = 0; v < dist.size(); v++) {
+            System.out.println(dist.get(v) + ", " + id.get(v));
         }
+    }
+
+    public void swap(ArrayList<Double> dist, ArrayList<Integer> id, int indx1, int indx2) {
+        double tempDist = dist.get(indx1);
+        int tempId = id.get(indx1);
+
+        dist.set(indx1, dist.get(indx2));
+        dist.set(indx2, tempDist);
+        id.set(indx1, id.get(indx2));
+        id.set(indx2, tempId);
     }
 
     //Find all widgets
@@ -242,18 +250,18 @@ public class TotalLog extends android.support.v4.app.Fragment implements View.On
         logView = (ListView) view.findViewById(R.id.logList);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        if(type == "recent") {
-            String query = "SELECT * FROM DailyLog WHERE type = 'doing' ORDER BY id DESC";
-            insertLogRecent(query);
-        }
-        else {
-            String query = "SELECT * FROM DailyLog WHERE type = 'doing' ORDER BY id ASC";
-            insertLogDistance(query);
-        }
-        logAdapter.notifyDataSetChanged();
-    }
+//    @Override
+//    public void onResume() {
+//        super.onResume();
+//
+//        if(type == "recent") {
+//            String query = "SELECT * FROM DailyLog WHERE type = 'doing' ORDER BY id DESC";
+//            insertLogRecent(query);
+//        }
+//        else {
+//            String query = "SELECT * FROM DailyLog WHERE type = 'doing' ORDER BY id ASC";
+//            insertLogDistance(query);
+//        }
+//        logAdapter.notifyDataSetChanged();
+//    }
 }
