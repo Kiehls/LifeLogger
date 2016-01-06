@@ -95,6 +95,7 @@ public class TotalLog extends android.support.v4.app.Fragment implements View.On
             case R.id.tDoing :
                 logList.clear();
                 logId.clear();
+                logDist.clear();
                 if(type == null) {
                     Toast.makeText(getActivity(), "Choose Recent or Distance Button", Toast.LENGTH_SHORT).show();
                 }
@@ -104,7 +105,7 @@ public class TotalLog extends android.support.v4.app.Fragment implements View.On
                         Log.d("Log Type : ", "Doing Recent");
                         insertLogRecent(query);
                     } else { //거리순 + 행동
-                        String query = "SELECT * FROM DailyLog WHERE type = 'doing' ORDER BY id ASC"; //fix
+                        String query = "SELECT * FROM DailyLog WHERE type = 'doing' "; //fix
                         Log.d("Log Type : ", "Doing Distance");
                         insertLogDistance(query);
                     }
@@ -114,6 +115,7 @@ public class TotalLog extends android.support.v4.app.Fragment implements View.On
             case R.id.tEvents :
                 logList.clear();
                 logId.clear();
+                logDist.clear();
                 if(type == null) {
                     Toast.makeText(getActivity(), "Choose Recent or Distance Button", Toast.LENGTH_SHORT).show();
                 }
@@ -123,7 +125,7 @@ public class TotalLog extends android.support.v4.app.Fragment implements View.On
                         Log.d("Log Type :", "Events Recent");
                         insertLogRecent(query);
                     } else { //거리순 + 사건
-                        String query = "SELECT * FROM DailyLog WHERE type = 'event' ORDER BY id ASC"; //fix
+                        String query = "SELECT * FROM DailyLog WHERE type = 'event' "; //fix
                         Log.d("Log Type : ", "Events Distance");
                         insertLogDistance(query);
                     }
@@ -202,12 +204,13 @@ public class TotalLog extends android.support.v4.app.Fragment implements View.On
             cursor = database.rawQuery(sql, null);
             cursor.moveToFirst();
             for(int i = 0; i < logId.size(); i++) {
-                cursor.moveToPosition(logId.get(i));
+                cursor.moveToPosition(logId.get(i) - 1);
                 String log = cursor.getString(1);
+                Log.d("in Log : ", log);
 
                 logList.add(log);
-                Log.e("distance : ", "" + logDist.get(i));
             }
+            cursor.close();
 
         } catch (Exception e) {
             Log.d("Log Error : ", e.toString());
